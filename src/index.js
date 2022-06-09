@@ -2,6 +2,7 @@ console.log('hello there');
 import Express from 'express';
 import http from 'http';
 import cors from 'cors';
+import fs from 'fs';
 
 const app = Express();
 app.use(cors());
@@ -18,8 +19,23 @@ const server = http.createServer(app, {
   },
 });
 
+const ImagesJson = [];
+const folder = './public/images/';
+fs.readdir(folder, (err, files) => {
+  console.log(files);
+  console.log(err);
+  files.forEach((file) => {
+    ImagesJson.push(`static/images/${file}`);
+  });
+  console.log('image Json : ', ImagesJson);
+});
+
 app.get('/', (req, res) => {
   res.send('hello three');
+});
+
+app.get('/images', (req, res) => {
+  res.send(ImagesJson);
 });
 
 server.listen(PORT, () => {
