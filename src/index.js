@@ -11,13 +11,18 @@ app.use(cors());
 // path to user : http://localhost:2020/static/images/darshan.jpeg
 app.use('/static', Express.static('public'));
 
-const PORT = 2020;
+const PORT = process.env.PORT || 3030;
+
+const CORS = {
+  origin: 'http://localhost:3000',
+  methods: ['GET'],
+};
 
 const server = http.createServer(app, {
-  cors: {
-    origin: 'http://localhost:3000',
-    methods: ['GET'],
-  },
+  cors: CORS,
+});
+const io = new Server(server, {
+  cors: CORS,
 });
 
 const ImagesJson = [];
@@ -37,6 +42,15 @@ app.get('/', (req, res) => {
 
 app.get('/images', (req, res) => {
   res.send(ImagesJson);
+});
+
+io.on('connection', (socket) => {
+  socket = socket;
+  console.log('connected');
+  console.log('socket ID : ', socket.id);
+  socket.on('disconnect', () => {
+    console.log('user disconnected');
+  });
 });
 
 server.listen(PORT, () => {
