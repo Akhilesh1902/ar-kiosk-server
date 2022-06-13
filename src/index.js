@@ -25,16 +25,26 @@ const io = new Server(server, {
   cors: CORS,
 });
 
-const ImagesJson = [];
+let ImagesJson = [];
 const folder = './public/images/';
-fs.readdir(folder, (err, files) => {
-  console.log(files);
-  console.log(err);
-  files.forEach((file) => {
-    ImagesJson.push(`static/images/${file}`);
-  });
-  console.log('image Json : ', ImagesJson);
+
+fs.watch(folder, (event, filename) => {
+  console.log('wathcing');
+  makeArr();
 });
+
+const makeArr = () => {
+  fs.readdir(folder, (err, files) => {
+    const newArr = [];
+    files.forEach((file) => {
+      newArr.push(`static/images/${file}`);
+    });
+    ImagesJson = newArr;
+    // console.log(ImagesJson);
+    io.emit('images_updated');
+  });
+};
+makeArr();
 
 app.get('/', (req, res) => {
   res.send('hello three');
