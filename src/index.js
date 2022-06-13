@@ -14,9 +14,11 @@ app.use('/static', Express.static('public'));
 
 const PORT = process.env.PORT || 3030;
 
+const CLIENT_ORIGIN = 'https://ar-kiosk.netlify.app';
+
 const CORS = {
-  origin: 'http://localhost:3000',
-  methods: ['GET'],
+  origin: CLIENT_ORIGIN,
+  methods: ['GET', 'POST'],
 };
 
 const server = http.createServer(app, {
