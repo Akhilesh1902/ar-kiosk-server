@@ -14,7 +14,8 @@ app.use('/static', Express.static('public'));
 
 const PORT = process.env.PORT || 3030;
 
-const CLIENT_ORIGIN = 'https://ar-kiosk.netlify.app';
+// const CLIENT_ORIGIN = 'https://ar-kiosk.netlify.app';
+const CLIENT_ORIGIN = 'http://localhost:3000';
 
 const CORS = {
   origin: CLIENT_ORIGIN,
@@ -112,7 +113,7 @@ const sendMailToUser = async (userEmail) => {
       // html: '<b>Hello world?</b>', // html body
       attachments: [
         {
-          filename: 'image',
+          filename: 'image.png',
           path: './image.png',
         },
       ],
