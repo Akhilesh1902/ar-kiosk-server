@@ -3,6 +3,7 @@ import Express from 'express';
 import http from 'http';
 import cors from 'cors';
 import fs from 'fs';
+import { Server } from 'socket.io';
 
 const app = Express();
 app.use(cors());
