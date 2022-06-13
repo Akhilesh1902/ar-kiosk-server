@@ -12,7 +12,7 @@ app.use(cors());
 // path to user : http://localhost:2020/static/images/darshan.jpeg
 app.use('/static', Express.static('public'));
 
-const PORT = process.env.PORT || 3030;
+const PORT = process.env.PORT;
 
 const CORS = {
   origin: 'http://localhost:3000',
