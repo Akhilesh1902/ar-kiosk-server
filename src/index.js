@@ -90,8 +90,6 @@ const sendMailToUser = async (userEmail) => {
     // port: 587,
     auth: {
       type: 'OAuth2',
-      // user: 'darrick.mohr9@ethereal.email',
-      // pass: 'wvvDzJSYafDszccCy7',
       user: 'spareakhil@gmail.com',
       pass: 'AkhilSpare@19',
       clientId:
