@@ -20,14 +20,15 @@ export const onConnection = (socket, localFiles) => {
       console.log(err);
       console.log(img);
     });
-    sendMailToUser(userEmail);
+    sendMailToUser(userEmail, socket);
   });
+
+  const imgFolder = './public/images/';
 
   socket.on('_new_image_upload', ({ imageName, image }) => {
     console.log(localFiles);
     console.log(imageName);
-    const folder = './public/images/';
-    const addr = `${folder}${imageName}`;
+    const addr = `${imgFolder}${imageName}`;
     console.log(image);
     const buff = image;
     writeImageFile(imageName, buff, addr);
@@ -38,4 +39,13 @@ export const onConnection = (socket, localFiles) => {
       console.log(err);
     });
   };
+
+  socket.on('__delete_image', ({ img }) => {
+    console.log(img);
+    fs.unlink(`${imgFolder}${img.name}`, (err) => {
+      if (err) {
+        console.log(err);
+      }
+    });
+  });
 };

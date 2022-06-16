@@ -6,6 +6,7 @@ import fs from 'fs';
 import { Server } from 'socket.io';
 
 import { onConnection } from './js/socket.js';
+import chokidar from 'chokidar';
 
 // const __dirname = path.resolve();
 const __dirname = process.cwd();
@@ -16,8 +17,8 @@ app.use(cors());
 app.use('/static', Express.static('public'));
 
 const PORT = process.env.PORT || 3030;
-const CLIENT_ORIGIN = 'https://ar-kiosk.netlify.app';
-// const CLIENT_ORIGIN = 'http://localhost:3000';
+// const CLIENT_ORIGIN = 'https://ar-kiosk.netlify.app';
+const CLIENT_ORIGIN = 'http://localhost:3000';
 
 const CORS = {
   origin: CLIENT_ORIGIN,
@@ -35,9 +36,32 @@ let ImagesJson = [];
 let localFiles;
 const folder = './public/images/';
 
-fs.watch(folder, (event, filename) => {
-  console.log('wathcing');
-  makeArr();
+const watcher = chokidar.watch(folder, {});
+
+// watcher.on('change', (path) => {
+//   console.log('changing');
+// });
+// watcher.on('add', (path) => {
+//   console.log('added');
+// });
+
+let fsTimeout;
+
+fs.watch(folder, { persistent: true }, (e, fileName) => {
+  if (!fsTimeout) {
+    console.log('file.js %s event', e);
+    makeArr();
+    fsTimeout = setTimeout(function () {
+      fsTimeout = null;
+    }, 100); // give 5 seconds for multiple events
+  }
+  // console.log('watching');
+
+  // setTimeout(()=>{
+  //   console.log("watching in timeout");
+  // },300)
+  // console.log(event);
+  // console.log(fileName);
 });
 
 export const imagUpload = () => {
@@ -49,7 +73,7 @@ const makeArr = () => {
     localFiles = files;
     const newArr = [];
     files.forEach((file) => {
-      newArr.push(`static/images/${file}`);
+      newArr.push({ name: file, link: `static/images/${file}` });
     });
     ImagesJson = newArr;
     // console.log(ImagesJson);
