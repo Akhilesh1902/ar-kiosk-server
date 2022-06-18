@@ -4,9 +4,9 @@ import http from 'http';
 import cors from 'cors';
 import fs from 'fs';
 import { Server } from 'socket.io';
-
+import dotenv from 'dotenv';
+dotenv.config();
 import { onConnection } from './js/socket.js';
-import chokidar from 'chokidar';
 
 // const __dirname = path.resolve();
 const __dirname = process.cwd();
@@ -17,11 +17,11 @@ app.use(cors());
 app.use('/static', Express.static('public'));
 
 const PORT = process.env.PORT || 3030;
-// const CLIENT_ORIGIN = 'https://ar-kiosk.netlify.app';
+const DEV_CLIENT_ORIGIN = 'https://ar-kiosk.netlify.app';
 const CLIENT_ORIGIN = 'http://localhost:3000';
 
 const CORS = {
-  origin: CLIENT_ORIGIN,
+  origin: [CLIENT_ORIGIN, DEV_CLIENT_ORIGIN],
   methods: ['GET', 'POST'],
 };
 
@@ -30,20 +30,13 @@ const server = http.createServer(app, {
 });
 const io = new Server(server, {
   cors: CORS,
+  // sets the max file size
+  maxHttpBufferSize: 3e6,
 });
 
 let ImagesJson = [];
 let localFiles;
 const folder = './public/images/';
-
-const watcher = chokidar.watch(folder, {});
-
-// watcher.on('change', (path) => {
-//   console.log('changing');
-// });
-// watcher.on('add', (path) => {
-//   console.log('added');
-// });
 
 let fsTimeout;
 
@@ -55,13 +48,6 @@ fs.watch(folder, { persistent: true }, (e, fileName) => {
       fsTimeout = null;
     }, 100); // give 5 seconds for multiple events
   }
-  // console.log('watching');
-
-  // setTimeout(()=>{
-  //   console.log("watching in timeout");
-  // },300)
-  // console.log(event);
-  // console.log(fileName);
 });
 
 export const imagUpload = () => {
@@ -99,4 +85,5 @@ io.on('connection', (socket) => {
 
 server.listen(PORT, () => {
   console.log(`server listening to port ${PORT}`);
+  console.log(process.env.PORT);
 });

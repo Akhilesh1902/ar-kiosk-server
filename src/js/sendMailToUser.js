@@ -11,15 +11,12 @@ export const sendMailToUser = async (userEmail, socket) => {
     // port: 587,
     auth: {
       type: 'OAuth2',
-      user: 'spareakhil@gmail.com',
-      pass: 'AkhilSpare@19',
-      clientId:
-        '920334345234-dve11c41os2bc26hvp01o3eg4dp9lt69.apps.googleusercontent.com',
-      clientSecret: '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',
-      refreshToken:
-        '1//04wvik12DmiM2CgYIARAAGAQSNwF-L9Ir91zEib-oiyDoStlXgxLv9EKaRgvAPATEBTFKCldPJP0AKM0CDyqo362Is8ZcN0TE1YY',
-      accessToken:
-        'ya29.a0ARrdaM9JifVyv6wNrJQ8ANfUxp4zyIBvEmumRaH7AgmdG8LRPQJS5vtCyGu8GMNHk6Gr8tXOzV7FrYracYD8R0spfYzfNBXBr8lSjtq9zi2LkEdRUgr1WBcuK2vjOPM77Ronk1IjLnBcyZbO3eSFVptvs6n9',
+      user: process.env.GMAIL_LOGIN_ID,
+      pass: process.env.GMAIL_LOGIN_PASS,
+      clientId: process.env.GMAIL_CLIENT_ID,
+      clientSecret: process.env.GMAIL_CLIENT_SECRET,
+      refreshToken: process.env.GMAIL_REFRESH_TOKEN,
+      accessToken: process.env.GMAIL_ACCESS_TOKEN,
     },
   });
 
