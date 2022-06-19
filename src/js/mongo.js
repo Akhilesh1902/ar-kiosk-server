@@ -11,9 +11,7 @@ export class MongoClientConnection {
     console.log('connectiong to mongo');
     try {
       await this.client.connect();
-      this.collection = await this.client
-        .db('ar-kiosk')
-        .collection('kiosk-images');
+      this.collection = this.client.db('ar-kiosk').collection('kiosk-images');
     } catch (er) {
       console.log(er);
     } finally {
@@ -28,7 +26,6 @@ export class MongoClientConnection {
     // const result = this.client.db('ar-kiosk').collection('kiosk-images').find();
     const result = this.collection.find();
     const resArray = await result.toArray();
-    console.log(resArray);
 
     return resArray;
   }
@@ -45,6 +42,6 @@ export class MongoClientConnection {
 
   async deleteImage(name) {
     const res = await this.collection.deleteOne({ name });
-    return `${res.deletedCount} no of images deleted`;
+    return res;
   }
 }

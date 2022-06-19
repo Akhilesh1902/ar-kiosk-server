@@ -1,14 +1,15 @@
 import { sendMailToUser } from './sendMailToUser.js';
 import fs from 'fs';
 
-export const onConnection = (socket) => {
+export const onConnection = (socket, mongoClient) => {
+  const imgFolder = '/static/images/';
   socket = socket;
   console.log('connected');
   console.log('socket ID : ', socket.id);
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
-    mongoClient.disconnect();
+    // mongoClient.disconnect();
   });
 
   socket.on('send_image', ({ screenShot, userEmail }) => {
@@ -24,12 +25,8 @@ export const onConnection = (socket) => {
     sendMailToUser(userEmail);
   });
 
-  socket.on('_new_image_upload', ({ imageName, image }) => {
-    console.log(localFiles);
-    console.log(imageName);
-    const folder = './public/images/';
-    const addr = `${folder}${imageName}`;
-    console.log(image);
+  socket.on('_image_update', async ({ imageName, image, type }) => {
+    const addr = `${imgFolder}${imageName}`;
     const buff = image;
 
     switch (type) {
@@ -46,13 +43,30 @@ export const onConnection = (socket) => {
     }
   });
 
-  socket.on('__delete_image', ({ img }) => {
-    console.log(img);
-  });
   const writeImageFile = (buff, addr) => {
     console.log(`writing new image file in ${addr}`);
     fs.writeFile(`.${addr}`, buff, (img, err) => {
       console.log(err);
     });
+  };
+
+  const handleImageAddition = async (imageName, addr, buff) => {
+    const result = await mongoClient.updateImages(imageName, addr);
+    if (result.matchedCount) {
+      return;
+    }
+    writeImageFile(buff, addr);
+  };
+
+  const handleImageDeletion = async (imagename) => {
+    const res = await mongoClient.deleteImage(imagename);
+    if (res.deletedCount === 1) {
+      fs.unlink(`.${imgFolder}${imagename}`, (err) => {
+        if (err) {
+          console.log(err);
+        }
+      });
+    }
+    socket.emit('_image_update');
   };
 };

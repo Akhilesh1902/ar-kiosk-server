@@ -2,7 +2,6 @@ console.log('hello there');
 import Express from 'express';
 import http from 'http';
 import cors from 'cors';
-import fs from 'fs';
 import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -32,35 +31,6 @@ const io = new Server(server, {
   cors: CORS,
 });
 
-// let ImagesJson = [];
-// let localFiles;
-// const folder = './static/images/';
-
-// let fsTimeout;
-// fs.watch(folder, { persistent: true }, (e, fileName) => {
-//   if (!fsTimeout) {
-//     console.log('file.js %s event', e);
-//     makeArr();
-//     fsTimeout = setTimeout(function () {
-//       fsTimeout = null;
-//     }, 100); // give 5 seconds for multiple events
-//   }
-// });
-
-// const makeArr = () => {
-//   fs.readdir(folder, (err, files) => {
-//     localFiles = files;
-//     const newArr = [];
-//     files.forEach((file) => {
-//       newArr.push({ name: file, url: `/static/images/${file}` });
-//     });
-//     ImagesJson = newArr;
-//     // console.log(ImagesJson);
-//     io.emit('images_updated');
-//   });
-// };
-// makeArr();
-
 app.get('/', (req, res) => {
   res.send('hello three');
 });
@@ -70,13 +40,8 @@ app.get('/images', async (req, res) => {
   res.send(imgData);
 });
 
-// app.get('/newimage', async (req, res) => {
-//   mongoClient.updateImages('allu', 'newimageUrl');
-//   res.send('hello add');
-// });
-
 io.on('connection', (socket) => {
-  onConnection(socket);
+  onConnection(socket, mongoClient);
 });
 
 server.listen(PORT, () => {
