@@ -11,8 +11,6 @@ import { onConnection } from './js/socket.js';
 import { MongoClientConnection } from './js/mongo.js';
 
 const mongoClient = new MongoClientConnection();
-// const __dirname = path.resolve();
-const __dirname = process.cwd();
 const app = Express();
 app.use(cors());
 // adding /static as the prefix for the image url
@@ -24,7 +22,7 @@ const CLIENT_ORIGIN = 'https://ar-kiosk.netlify.app';
 const DEV_CLIENT_ORIGIN = 'http://localhost:3000';
 
 const CORS = {
-  origin: CLIENT_ORIGIN,
+  origin: [CLIENT_ORIGIN, DEV_CLIENT_ORIGIN],
   methods: ['GET', 'POST'],
 };
 const server = http.createServer(app, {
@@ -34,49 +32,42 @@ const io = new Server(server, {
   cors: CORS,
 });
 
-let ImagesJson = [];
-let localFiles;
-const folder = './static/images/';
+// let ImagesJson = [];
+// let localFiles;
+// const folder = './static/images/';
 
-let fsTimeout;
-fs.watch(folder, { persistent: true }, (e, fileName) => {
-  if (!fsTimeout) {
-    console.log('file.js %s event', e);
-    makeArr();
-    fsTimeout = setTimeout(function () {
-      fsTimeout = null;
-    }, 100); // give 5 seconds for multiple events
-  }
-  // console.log('watching');
+// let fsTimeout;
+// fs.watch(folder, { persistent: true }, (e, fileName) => {
+//   if (!fsTimeout) {
+//     console.log('file.js %s event', e);
+//     makeArr();
+//     fsTimeout = setTimeout(function () {
+//       fsTimeout = null;
+//     }, 100); // give 5 seconds for multiple events
+//   }
+// });
 
-  // setTimeout(()=>{
-  //   console.log("watching in timeout");
-  // },300)
-  // console.log(event);
-  // console.log(fileName);
-});
-
-const makeArr = () => {
-  fs.readdir(folder, (err, files) => {
-    localFiles = files;
-    const newArr = [];
-    files.forEach((file) => {
-      newArr.push({ name: file, url: `/static/images/${file}` });
-    });
-    ImagesJson = newArr;
-    // console.log(ImagesJson);
-    io.emit('images_updated');
-  });
-};
-makeArr();
+// const makeArr = () => {
+//   fs.readdir(folder, (err, files) => {
+//     localFiles = files;
+//     const newArr = [];
+//     files.forEach((file) => {
+//       newArr.push({ name: file, url: `/static/images/${file}` });
+//     });
+//     ImagesJson = newArr;
+//     // console.log(ImagesJson);
+//     io.emit('images_updated');
+//   });
+// };
+// makeArr();
 
 app.get('/', (req, res) => {
   res.send('hello three');
 });
 
 app.get('/images', async (req, res) => {
-  mongoClient.getAllImages();
-  res.send(ImagesJson);
+  const imgData = await mongoClient.getAllImages();
+  res.send(imgData);
 });
 
 // app.get('/newimage', async (req, res) => {
