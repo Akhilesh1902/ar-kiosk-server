@@ -19,12 +19,15 @@ export const onConnection = (socket, mongoClient) => {
       console.log(err);
       console.log(img);
     });
-    sendMailToUser(userEmail, socket);
+    sendMailToUser(userEmail);
   });
 
-  socket.on('_image_update', async ({ imageName, image, type }) => {
-    console.log(type);
-    const addr = `${imgFolder}${imageName}`;
+  socket.on('_new_image_upload', ({ imageName, image }) => {
+    console.log(localFiles);
+    console.log(imageName);
+    const folder = './public/images/';
+    const addr = `${folder}${imageName}`;
+    console.log(image);
     const buff = image;
 
     switch (type) {
@@ -49,25 +52,5 @@ export const onConnection = (socket, mongoClient) => {
     fs.writeFile(`.${addr}`, buff, (img, err) => {
       console.log(err);
     });
-  };
-
-  const handleImageAddition = async (imageName, addr, buff) => {
-    const result = await mongoClient.updateImages(imageName, addr);
-    console.log(result);
-    if (result.matchedCount) {
-      return;
-    }
-    writeImageFile(buff, addr);
-  };
-
-  const handleImageDeletion = (imagename) => {
-    const res = mongoClient.deleteImage(imagename);
-    if (res.dleteCount === 1) {
-      fs.unlink(`.${imgFolder}${imagename}`, (err) => {
-        if (err) {
-          console.log(err);
-        }
-      });
-    }
   };
 };

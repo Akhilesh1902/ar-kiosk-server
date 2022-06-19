@@ -4,10 +4,9 @@ import http from 'http';
 import cors from 'cors';
 import fs from 'fs';
 import { Server } from 'socket.io';
-import dotenv from 'dotenv';
-dotenv.config();
+
 import { onConnection } from './js/socket.js';
-import { MongoClientConnection } from './js/mongo.js';
+import chokidar from 'chokidar';
 
 const mongoClient = new MongoClientConnection();
 // const __dirname = path.resolve();
@@ -19,11 +18,11 @@ app.use(cors());
 app.use('/static', Express.static('static'));
 
 const PORT = process.env.PORT || 3030;
-const DEV_CLIENT_ORIGIN = 'https://ar-kiosk.netlify.app';
+// const CLIENT_ORIGIN = 'https://ar-kiosk.netlify.app';
 const CLIENT_ORIGIN = 'http://localhost:3000';
 
 const CORS = {
-  origin: [CLIENT_ORIGIN, DEV_CLIENT_ORIGIN],
+  origin: CLIENT_ORIGIN,
   methods: ['GET', 'POST'],
 };
 
@@ -32,23 +31,37 @@ const server = http.createServer(app, {
 });
 const io = new Server(server, {
   cors: CORS,
-  // sets the max file size
-  maxHttpBufferSize: 3e6,
 });
 
 const folder = './static/images/';
 
-// let fsTimeout;
+const watcher = chokidar.watch(folder, {});
 
-// fs.watch(folder, { persistent: true }, (e, fileName) => {
-//   if (!fsTimeout) {
-//     console.log('file.js %s event', e);
-//     makeArr();
-//     fsTimeout = setTimeout(function () {
-//       fsTimeout = null;
-//     }, 100); // give 5 seconds for multiple events
-//   }
+// watcher.on('change', (path) => {
+//   console.log('changing');
 // });
+// watcher.on('add', (path) => {
+//   console.log('added');
+// });
+
+let fsTimeout;
+
+fs.watch(folder, { persistent: true }, (e, fileName) => {
+  if (!fsTimeout) {
+    console.log('file.js %s event', e);
+    makeArr();
+    fsTimeout = setTimeout(function () {
+      fsTimeout = null;
+    }, 100); // give 5 seconds for multiple events
+  }
+  // console.log('watching');
+
+  // setTimeout(()=>{
+  //   console.log("watching in timeout");
+  // },300)
+  // console.log(event);
+  // console.log(fileName);
+});
 
 // export const imagUpload = () => {
 //   console.log('got image in server');
@@ -87,5 +100,5 @@ io.on('connection', (socket) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`server listening to port ${PORT} host`);
+  console.log(`server listening to port ${PORT}`);
 });
