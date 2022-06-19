@@ -24,7 +24,7 @@ const CLIENT_ORIGIN = 'https://ar-kiosk.netlify.app';
 const DEV_CLIENT_ORIGIN = 'http://localhost:3000';
 
 const CORS = {
-  origin: [CLIENT_ORIGIN, DEV_CLIENT_ORIGIN],
+  origin: CLIENT_ORIGIN,
   methods: ['GET', 'POST'],
 };
 const server = http.createServer(app, {
@@ -47,6 +47,13 @@ fs.watch(folder, { persistent: true }, (e, fileName) => {
       fsTimeout = null;
     }, 100); // give 5 seconds for multiple events
   }
+  // console.log('watching');
+
+  // setTimeout(()=>{
+  //   console.log("watching in timeout");
+  // },300)
+  // console.log(event);
+  // console.log(fileName);
 });
 
 const makeArr = () => {

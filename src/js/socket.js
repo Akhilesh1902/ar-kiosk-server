@@ -8,6 +8,7 @@ export const onConnection = (socket) => {
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
+    mongoClient.disconnect();
   });
 
   socket.on('send_image', ({ screenShot, userEmail }) => {
@@ -15,37 +16,43 @@ export const onConnection = (socket) => {
     // console.log(screenShot);
     let imgData = screenShot.replace(/^data:image\/\w+;base64,/, '');
     let buff = Buffer.from(imgData, 'base64');
-    // console.log(buff);
+
     fs.writeFile('image.png', buff, (img, err) => {
       console.log(err);
       console.log(img);
     });
-    sendMailToUser(userEmail, socket);
+    sendMailToUser(userEmail);
   });
-
-  const imgFolder = './public/images/';
 
   socket.on('_new_image_upload', ({ imageName, image }) => {
     console.log(localFiles);
     console.log(imageName);
-    const addr = `${imgFolder}${imageName}`;
+    const folder = './public/images/';
+    const addr = `${folder}${imageName}`;
     console.log(image);
     const buff = image;
-    writeImageFile(imageName, buff, addr);
-  });
 
-  const writeImageFile = (imageName, buff, addr) => {
-    fs.writeFile(addr, buff, (img, err) => {
-      console.log(err);
-    });
-  };
+    switch (type) {
+      case 'addition': {
+        handleImageAddition(imageName, addr, buff);
+        break;
+      }
+      case 'deletion': {
+        handleImageDeletion(imageName);
+        break;
+      }
+      default:
+        console.log('wrong type');
+    }
+  });
 
   socket.on('__delete_image', ({ img }) => {
     console.log(img);
-    fs.unlink(`${imgFolder}${img.name}`, (err) => {
-      if (err) {
-        console.log(err);
-      }
-    });
   });
+  const writeImageFile = (buff, addr) => {
+    console.log(`writing new image file in ${addr}`);
+    fs.writeFile(`.${addr}`, buff, (img, err) => {
+      console.log(err);
+    });
+  };
 };
