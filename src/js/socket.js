@@ -1,7 +1,7 @@
 import { sendMailToUser } from './sendMailToUser.js';
 import fs from 'fs';
 
-export const onConnection = (socket, localFiles) => {
+export const onConnection = (socket) => {
   socket = socket;
   console.log('connected');
   console.log('socket ID : ', socket.id);
