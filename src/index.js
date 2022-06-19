@@ -7,14 +7,16 @@ import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 dotenv.config();
 import { onConnection } from './js/socket.js';
+import { MongoClientConnection } from './js/mongo.js';
 
+const mongoClient = new MongoClientConnection();
 // const __dirname = path.resolve();
 const __dirname = process.cwd();
 const app = Express();
 app.use(cors());
 // adding /static as the prefix for the image url
 // path to user : http://localhost:2020/static/images/darshan.jpeg
-app.use('/static', Express.static('public'));
+app.use('/static', Express.static('static'));
 
 const PORT = process.env.PORT || 3030;
 const DEV_CLIENT_ORIGIN = 'https://ar-kiosk.netlify.app';
@@ -34,56 +36,56 @@ const io = new Server(server, {
   maxHttpBufferSize: 3e6,
 });
 
-let ImagesJson = [];
-let localFiles;
-const folder = './public/images/';
+const folder = './static/images/';
 
-let fsTimeout;
+// let fsTimeout;
 
-fs.watch(folder, { persistent: true }, (e, fileName) => {
-  if (!fsTimeout) {
-    console.log('file.js %s event', e);
-    makeArr();
-    fsTimeout = setTimeout(function () {
-      fsTimeout = null;
-    }, 100); // give 5 seconds for multiple events
-  }
-});
+// fs.watch(folder, { persistent: true }, (e, fileName) => {
+//   if (!fsTimeout) {
+//     console.log('file.js %s event', e);
+//     makeArr();
+//     fsTimeout = setTimeout(function () {
+//       fsTimeout = null;
+//     }, 100); // give 5 seconds for multiple events
+//   }
+// });
 
-export const imagUpload = () => {
-  console.log('got image in server');
-};
+// export const imagUpload = () => {
+//   console.log('got image in server');
+// };
 
-const makeArr = () => {
-  fs.readdir(folder, (err, files) => {
-    localFiles = files;
-    const newArr = [];
-    files.forEach((file) => {
-      newArr.push({ name: file, link: `static/images/${file}` });
-    });
-    ImagesJson = newArr;
-    // console.log(ImagesJson);
-    io.emit('images_updated');
-  });
-};
-makeArr();
+// const makeArr = () => {
+//   fs.readdir(folder, (err, files) => {
+//     localFiles = files;
+//     const newArr = [];
+//     files.forEach((file) => {
+//       newArr.push({ name: file, link: `static/images/${file}` });
+//     });
+//     ImagesJson = newArr;
+//     // console.log(ImagesJson);
+//     io.emit('images_updated');
+//   });
+// };
+// makeArr();
 
 app.get('/', (req, res) => {
-  // res.send('hello three');
-  console.log(__dirname);
-  res.sendFile(__dirname + '/src/views/index.html');
+  res.send('hello three');
 });
 
-app.get('/images', (req, res) => {
-  res.send(ImagesJson);
-  // console.log(ImagesJson);
+app.get('/images', async (req, res) => {
+  const imgData = await mongoClient.getAllImages();
+  res.send(imgData);
+});
+
+app.get('/newimage', async (req, res) => {
+  mongoClient.updateImages('allu', 'newimageUrl');
+  res.send('hello add');
 });
 
 io.on('connection', (socket) => {
-  onConnection(socket, localFiles);
+  onConnection(socket, mongoClient);
 });
 
 server.listen(PORT, () => {
-  console.log(`server listening to port ${PORT}`);
-  console.log(process.env.PORT);
+  console.log(`server listening to port ${PORT} host`);
 });

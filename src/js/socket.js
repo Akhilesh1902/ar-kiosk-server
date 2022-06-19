@@ -1,13 +1,12 @@
 import { sendMailToUser } from './sendMailToUser.js';
 import fs from 'fs';
 
-export const onConnection = (socket, localFiles) => {
-  socket = socket;
-  console.log('connected');
-  console.log('socket ID : ', socket.id);
+export const onConnection = (socket, mongoClient) => {
+  const imgFolder = '/static/images/';
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
+    mongoClient.disconnect();
   });
 
   socket.on('send_image', ({ screenShot, userEmail }) => {
@@ -15,7 +14,7 @@ export const onConnection = (socket, localFiles) => {
     // console.log(screenShot);
     let imgData = screenShot.replace(/^data:image\/\w+;base64,/, '');
     let buff = Buffer.from(imgData, 'base64');
-    // console.log(buff);
+
     fs.writeFile('image.png', buff, (img, err) => {
       console.log(err);
       console.log(img);
@@ -23,29 +22,52 @@ export const onConnection = (socket, localFiles) => {
     sendMailToUser(userEmail, socket);
   });
 
-  const imgFolder = './public/images/';
-
-  socket.on('_new_image_upload', ({ imageName, image }) => {
-    console.log(localFiles);
-    console.log(imageName);
+  socket.on('_image_update', async ({ imageName, image, type }) => {
+    console.log(type);
     const addr = `${imgFolder}${imageName}`;
-    console.log(image);
     const buff = image;
-    writeImageFile(imageName, buff, addr);
+
+    switch (type) {
+      case 'addition': {
+        handleImageAddition(imageName, addr, buff);
+        break;
+      }
+      case 'deletion': {
+        handleImageDeletion(imageName);
+        break;
+      }
+      default:
+        console.log('wrong type');
+    }
   });
 
-  const writeImageFile = (imageName, buff, addr) => {
-    fs.writeFile(addr, buff, (img, err) => {
+  socket.on('__delete_image', ({ img }) => {
+    console.log(img);
+  });
+  const writeImageFile = (buff, addr) => {
+    console.log(`writing new image file in ${addr}`);
+    fs.writeFile(`.${addr}`, buff, (img, err) => {
       console.log(err);
     });
   };
 
-  socket.on('__delete_image', ({ img }) => {
-    console.log(img);
-    fs.unlink(`${imgFolder}${img.name}`, (err) => {
-      if (err) {
-        console.log(err);
-      }
-    });
-  });
+  const handleImageAddition = async (imageName, addr, buff) => {
+    const result = await mongoClient.updateImages(imageName, addr);
+    console.log(result);
+    if (result.matchedCount) {
+      return;
+    }
+    writeImageFile(buff, addr);
+  };
+
+  const handleImageDeletion = (imagename) => {
+    const res = mongoClient.deleteImage(imagename);
+    if (res.dleteCount === 1) {
+      fs.unlink(`.${imgFolder}${imagename}`, (err) => {
+        if (err) {
+          console.log(err);
+        }
+      });
+    }
+  };
 };
