@@ -26,7 +26,8 @@ export const onConnection = (socket, mongoClient) => {
   });
 
   socket.on('_image_update', async ({ imgData }) => {
-    // console.log(imgData);
+    console.log(imgData);
+
     const { name, type } = imgData;
     const addr = `${imgFolder}${name}`;
 
