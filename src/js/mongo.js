@@ -30,10 +30,13 @@ export class MongoClientConnection {
     return resArray;
   }
 
-  async updateImages(name, url) {
+  async updateImages(imageData) {
+    const { name, scale, pos, addr: url } = imageData;
+    console.log('updating to mongo');
+    console.log(imageData);
     const res = await this.collection.updateOne(
       { name },
-      { $set: { url } },
+      { $set: { url, scale, pos } },
       { upsert: true }
     );
 

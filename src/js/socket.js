@@ -25,17 +25,18 @@ export const onConnection = (socket, mongoClient) => {
     sendMailToUser(userEmail);
   });
 
-  socket.on('_image_update', async ({ imageName, image, type }) => {
-    const addr = `${imgFolder}${imageName}`;
-    const buff = image;
+  socket.on('_image_update', async ({ imgData }) => {
+    // console.log(imgData);
+    const { name, type } = imgData;
+    const addr = `${imgFolder}${name}`;
 
     switch (type) {
       case 'addition': {
-        handleImageAddition(imageName, addr, buff);
+        handleImageAddition({ ...imgData, addr });
         break;
       }
       case 'deletion': {
-        handleImageDeletion(imageName);
+        handleImageDeletion(name);
         break;
       }
       default:
@@ -50,12 +51,13 @@ export const onConnection = (socket, mongoClient) => {
     });
   };
 
-  const handleImageAddition = async (imageName, addr, buff) => {
-    const result = await mongoClient.updateImages(imageName, addr);
+  const handleImageAddition = async (imageData) => {
+    console.log(imageData.addr);
+    const result = await mongoClient.updateImages(imageData);
     if (result.matchedCount) {
       return;
     }
-    writeImageFile(buff, addr);
+    writeImageFile(imageData.file, imageData.addr);
   };
 
   const handleImageDeletion = async (imagename) => {
