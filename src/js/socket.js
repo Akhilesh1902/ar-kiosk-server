@@ -3,9 +3,10 @@ import fs from 'fs';
 
 export const onConnection = (socket, mongoClient) => {
   const imgFolder = '/static/images/';
+  const thumbFolder = '/static/thumbnail/';
   socket = socket;
-  console.log('connected');
-  console.log('socket ID : ', socket.id);
+  // console.log('connected');
+  // console.log('socket ID : ', socket.id);
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
@@ -28,12 +29,13 @@ export const onConnection = (socket, mongoClient) => {
   socket.on('_image_update', async ({ imgData }) => {
     console.log(imgData);
 
-    const { name, type } = imgData;
+    const { name, type, thumbName } = imgData;
     const addr = `${imgFolder}${name}`;
+    const thumbnailUrl = `${thumbFolder}${thumbName}`;
 
     switch (type) {
       case 'addition': {
-        handleImageAddition({ ...imgData, addr });
+        handleImageAddition({ ...imgData, addr, thumbnailUrl });
         break;
       }
       case 'deletion': {
@@ -53,12 +55,15 @@ export const onConnection = (socket, mongoClient) => {
   };
 
   const handleImageAddition = async (imageData) => {
-    console.log(imageData.addr);
+    // console.log(imageData.addr);
+    console.log(imageData);
+    // return;
     const result = await mongoClient.updateImages(imageData);
     if (result.matchedCount) {
       return;
     }
     writeImageFile(imageData.file, imageData.addr);
+    writeImageFile(imageData.thumbnail, imageData.thumbnailUrl);
   };
 
   const handleImageDeletion = async (imagename) => {

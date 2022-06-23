@@ -24,19 +24,19 @@ export class MongoClientConnection {
 
   async getAllImages() {
     // const result = this.client.db('ar-kiosk').collection('kiosk-images').find();
-    const result = this.collection.find();
+    const result = await this.collection.find();
     const resArray = await result.toArray();
 
     return resArray;
   }
 
   async updateImages(imageData) {
-    const { name, scale, pos, addr: url } = imageData;
+    const { name, scale, pos, addr: url, thumbnailUrl: thumbUrl } = imageData;
     console.log('updating to mongo');
     console.log(imageData);
     const res = await this.collection.updateOne(
       { name },
-      { $set: { url, scale, pos } },
+      { $set: { url, scale, pos, thumbUrl } },
       { upsert: true }
     );
 
