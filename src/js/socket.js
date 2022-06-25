@@ -3,6 +3,7 @@ import fs from 'fs';
 
 export const onConnection = (socket, mongoClient) => {
   const imgFolder = '/static/images/';
+  const videoFolder = '/static/videos/';
   const thumbFolder = '/static/thumbnail/';
   socket = socket;
   // console.log('connected');
@@ -26,20 +27,24 @@ export const onConnection = (socket, mongoClient) => {
     sendMailToUser(userEmail);
   });
 
-  socket.on('_image_update', async ({ imgData }) => {
-    console.log(imgData);
+  socket.on('_image_update', async ({ imgData, updateType }) => {
+    // console.log(imgData);
 
-    const { name, type, thumbName } = imgData;
-    const addr = `${imgFolder}${name}`;
-    const thumbnailUrl = `${thumbFolder}${thumbName}`;
+    // const { name, thumbName } = imgData;
+    // const addr = `${imgFolder}${name}`;
+    // const thumbnailUrl = `${thumbFolder}${thumbName}`;
 
-    switch (type) {
+    switch (updateType) {
       case 'addition': {
-        handleImageAddition({ ...imgData, addr, thumbnailUrl });
+        handleImageAddition(imgData);
         break;
       }
       case 'deletion': {
         handleImageDeletion(name);
+        break;
+      }
+      case 'video': {
+        handleVideoAddition(imgData);
         break;
       }
       default:
@@ -53,17 +58,44 @@ export const onConnection = (socket, mongoClient) => {
       console.log(err);
     });
   };
+  const handleVideoAddition = async (videoData) => {
+    console.log('handeling video');
+    console.log(videoData);
+    const { name, thumbName } = videoData;
+    const addr = `${videoFolder}${name}`;
+    const thumbnailUrl = `${thumbFolder}${thumbName}`;
 
-  const handleImageAddition = async (imageData) => {
-    // console.log(imageData.addr);
-    console.log(imageData);
-    // return;
-    const result = await mongoClient.updateImages(imageData);
+    const result = await mongoClient.updateImages({
+      ...videoData,
+      addr,
+      thumbnailUrl,
+    });
     if (result.matchedCount) {
       return;
     }
-    writeImageFile(imageData.file, imageData.addr);
-    writeImageFile(imageData.thumbnail, imageData.thumbnailUrl);
+    writeImageFile(videoData.file, addr);
+    writeImageFile(videoData.thumbnail, thumbnailUrl);
+  };
+
+  const handleImageAddition = async (imageData) => {
+    console.log(imageData);
+    const { name, thumbName } = imageData;
+
+    const addr = `${imgFolder}${name}`;
+    const thumbnailUrl = `${thumbFolder}${thumbName}`;
+
+    console.log(imageData);
+    // return;
+    const result = await mongoClient.updateImages({
+      ...imageData,
+      thumbnailUrl,
+      addr,
+    });
+    if (result.matchedCount) {
+      return;
+    }
+    writeImageFile(imageData.file, addr);
+    writeImageFile(imageData.thumbnail, thumbnailUrl);
   };
 
   const handleImageDeletion = async (imagename) => {

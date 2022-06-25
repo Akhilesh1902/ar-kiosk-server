@@ -10,7 +10,9 @@ export class MongoClientConnection {
   async connect() {
     console.log('connectiong to mongo');
     try {
-      await this.client.connect();
+      await this.client.connect().then(() => {
+        console.log('connected successfully');
+      });
       this.collection = this.client.db('ar-kiosk').collection('kiosk-images');
     } catch (er) {
       console.log(er);
@@ -31,12 +33,12 @@ export class MongoClientConnection {
   }
 
   async updateImages(imageData) {
-    const { name, scale, pos, addr: url, thumbnailUrl: thumbUrl } = imageData;
+    const { name, scale, pos, addr: url, type, thumbnailUrl } = imageData;
     console.log('updating to mongo');
     console.log(imageData);
     const res = await this.collection.updateOne(
       { name },
-      { $set: { url, scale, pos, thumbUrl } },
+      { $set: { url, scale, pos, thumbnailUrl, type } },
       { upsert: true }
     );
 
