@@ -24,7 +24,7 @@ export const onConnection = (socket, mongoClient) => {
       console.log(err);
       console.log(img);
     });
-    sendMailToUser(userEmail);
+    sendMailToUser(socket, userEmail);
   });
 
   socket.on('_image_update', async ({ imgData, updateType }) => {
@@ -51,11 +51,16 @@ export const onConnection = (socket, mongoClient) => {
         console.log('wrong type');
     }
   });
-
   const writeImageFile = (buff, addr) => {
     console.log(`writing new image file in ${addr}`);
     fs.writeFile(`.${addr}`, buff, (img, err) => {
       console.log(err);
+      if (err) {
+        socket.emit('_error', { err });
+      }
+      {
+        socket.emit('_scuccess', { addr });
+      }
     });
   };
   const handleVideoAddition = async (videoData) => {
@@ -71,6 +76,7 @@ export const onConnection = (socket, mongoClient) => {
       thumbnailUrl,
     });
     if (result.matchedCount) {
+      socket.emit('_exist_in_dataBase', { result });
       return;
     }
     writeImageFile(videoData.file, addr);
@@ -92,6 +98,7 @@ export const onConnection = (socket, mongoClient) => {
       addr,
     });
     if (result.matchedCount) {
+      socket.emit('_exist_in_dataBase', { result });
       return;
     }
     writeImageFile(imageData.file, addr);

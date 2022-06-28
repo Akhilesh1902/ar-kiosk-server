@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 
-export const sendMailToUser = async (userEmail) => {
+export const sendMailToUser = async (socket, userEmail) => {
   console.log('sending mails');
   const transporter = nodemailer.createTransport({
     // host: 'smtp.ethereal.email',
@@ -35,6 +35,11 @@ export const sendMailToUser = async (userEmail) => {
       ],
     },
     (err) => {
+      if (err) {
+        socket.emit('_email_error');
+      } else {
+        socket.emit('email_success');
+      }
       console.log(err);
     }
   );
