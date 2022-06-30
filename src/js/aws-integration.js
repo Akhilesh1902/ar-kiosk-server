@@ -18,17 +18,10 @@ export class AwsInstance {
     });
   }
 
-  uploadData(fileAddr) {
+  uploadObject(buff, fileAddr) {
     console.log('uploading data to aws');
-    console.log(fileAddr);
-
-    let fileStream = fs.readFileSync(fileAddr);
-
-    console.log(fileStream);
-
-    this.uploadParams.Body = fileStream;
-    this.uploadParams.Key = path.basename(fileAddr);
-    console.log(this.uploadParams);
+    this.uploadParams.Body = buff;
+    this.uploadParams.Key = fileAddr;
     this.s3.upload(this.uploadParams, (err, data) => {
       if (err) {
         console.log('Upload Error', err);
@@ -41,7 +34,7 @@ export class AwsInstance {
     // console.log(this.uploadParams);
   }
 
-  readData() {
+  readObject() {
     const data = this.s3.getObject({ Bucket, Key: 't.png' }, (err, data) => {
       if (err) {
         console.log('error while getting data from the server');
@@ -49,6 +42,18 @@ export class AwsInstance {
       }
       if (data) {
         console.log('data successfully fetched');
+        console.log(data);
+      }
+    });
+  }
+
+  deleteObject(Key) {
+    console.log(Key);
+    this.s3.deleteObject({ Bucket, Key }, (err, data) => {
+      if (err) {
+        console.log('error deleting in AWS ', err);
+      } else {
+        console.log('successfully deleted ', data);
         console.log(data);
       }
     });

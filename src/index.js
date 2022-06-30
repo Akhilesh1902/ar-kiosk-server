@@ -12,6 +12,8 @@ import { MongoClientConnection } from './js/mongo.js';
 import { AwsInstance } from './js/aws-integration.js';
 
 const mongoClient = new MongoClientConnection();
+const AWS_S3 = new AwsInstance();
+
 const app = Express();
 app.use(cors());
 // adding /static as the prefix for the image url
@@ -41,16 +43,8 @@ app.get('/', (req, res) => {
 const img = 'static/images/t.png';
 
 app.get('/testAws', (req, res) => {
-  // res.sendFile(img);
-  res.send('connecting to aws');
-  const aws = new AwsInstance(img);
-  // aws.uploadData(img);
-
-  setTimeout(() => {
-    aws.readData();
-  }, 1000);
-
-  // console.log(aws);
+  res.send('deleting');
+  AWS_S3.deleteObject('file/video.mp4');
 });
 
 app.get('/images', async (req, res) => {
@@ -59,7 +53,7 @@ app.get('/images', async (req, res) => {
 });
 
 io.on('connection', (socket) => {
-  onConnection(socket, mongoClient);
+  onConnection(socket, mongoClient, AWS_S3);
 });
 
 server.listen(PORT, () => {
