@@ -9,6 +9,8 @@ dotenv.config();
 import { onConnection } from './js/socket.js';
 import { MongoClientConnection } from './js/mongo.js';
 
+import { AwsInstance } from './js/aws-integration.js';
+
 const mongoClient = new MongoClientConnection();
 const app = Express();
 app.use(cors());
@@ -34,6 +36,21 @@ const io = new Server(server, {
 
 app.get('/', (req, res) => {
   res.send('hello three');
+});
+
+const img = 'static/images/t.png';
+
+app.get('/testAws', (req, res) => {
+  // res.sendFile(img);
+  res.send('connecting to aws');
+  const aws = new AwsInstance(img);
+  // aws.uploadData(img);
+
+  setTimeout(() => {
+    aws.readData();
+  }, 1000);
+
+  // console.log(aws);
 });
 
 app.get('/images', async (req, res) => {
