@@ -45,6 +45,7 @@ export const onConnection = (socket, mongoClient, AWS_S3) => {
     const result = await mongoClient.updateImages({
       ...data,
       thumbAddr,
+      thumb: data.thumbnail,
       fileAddr,
     });
 
@@ -53,7 +54,7 @@ export const onConnection = (socket, mongoClient, AWS_S3) => {
       return;
     }
     AWS_S3.uploadObject(data.file, fileAddr);
-    AWS_S3.uploadObject(data.thumbnail, thumbAddr);
+    // AWS_S3.uploadObject(data.thumbnail, thumbAddr);
     // return result;
   };
 
@@ -61,6 +62,17 @@ export const onConnection = (socket, mongoClient, AWS_S3) => {
     const { name, thumbName } = data;
     pushToDataBase(name, thumbName, data);
   };
+
+  socket.on('get_file', async ({ Key }) => {
+    // console.log(Key);
+
+    const getData = async () => {
+      const res = await AWS_S3.readObject(Key, socket);
+      // console.log(res);
+    };
+
+    getData();
+  });
 
   const handleImageDeletion = async (imagename) => {
     const res = await mongoClient.deleteImage(imagename);

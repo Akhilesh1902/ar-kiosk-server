@@ -34,17 +34,20 @@ export class AwsInstance {
     // console.log(this.uploadParams);
   }
 
-  readObject() {
-    const data = this.s3.getObject({ Bucket, Key: 't.png' }, (err, data) => {
+  readObject(Key, socket) {
+    const data = this.s3.getObject({ Bucket, Key }, (err, data) => {
       if (err) {
         console.log('error while getting data from the server');
         console.log(err);
       }
       if (data) {
         console.log('data successfully fetched');
-        console.log(data);
+        socket.emit('get_file', { Data: data.Body });
+        return data.Body;
       }
     });
+    // console.log(data);
+    return data;
   }
 
   deleteObject(Key) {
