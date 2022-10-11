@@ -1,22 +1,14 @@
 import { sendMailToUser } from './sendMailToUser.js';
 import fs from 'fs';
 
-export const onConnection = (socket, mongoClient) => {
+export const onConnection = (socket, mongoClient, AWS_S3) => {
   const imgFolder = '/static/images/';
-  const videoFolder = '/static/videos/';
-  const thumbFolder = '/static/thumbnail/';
-  socket = socket;
-  // console.log('connected');
-  // console.log('socket ID : ', socket.id);
-
   socket.on('disconnect', () => {
     console.log('user disconnected');
-    // mongoClient.disconnect();
   });
 
   socket.on('send_image', ({ screenShot, userEmail }) => {
     console.log('sending image to user');
-    // console.log(screenShot);
     let imgData = screenShot.replace(/^data:image\/\w+;base64,/, '');
     let buff = Buffer.from(imgData, 'base64');
 
@@ -28,15 +20,9 @@ export const onConnection = (socket, mongoClient) => {
   });
 
   socket.on('_image_update', async ({ imgData, updateType }) => {
-    // console.log(imgData);
-
-    // const { name, thumbName } = imgData;
-    // const addr = `${imgFolder}${name}`;
-    // const thumbnailUrl = `${thumbFolder}${thumbName}`;
-
     switch (updateType) {
       case 'addition': {
-        handleImageAddition(imgData);
+        handleUpload(imgData);
         break;
       }
       case 'deletion': {
@@ -44,66 +30,49 @@ export const onConnection = (socket, mongoClient) => {
         break;
       }
       case 'video': {
-        handleVideoAddition(imgData);
+        handleUpload(imgData);
         break;
       }
       default:
         console.log('wrong type');
     }
   });
-  const writeImageFile = (buff, addr) => {
-    console.log(`writing new image file in ${addr}`);
-    fs.writeFile(`.${addr}`, buff, (img, err) => {
-      console.log(err);
-      if (err) {
-        socket.emit('_error', { err });
-      }
-      {
-        socket.emit('_scuccess', { addr });
-      }
-    });
-  };
-  const handleVideoAddition = async (videoData) => {
-    console.log('handeling video');
-    console.log(videoData);
-    const { name, thumbName } = videoData;
-    const addr = `${videoFolder}${name}`;
-    const thumbnailUrl = `${thumbFolder}${thumbName}`;
+
+  const pushToDataBase = async (name, thumbName, data) => {
+    const fileAddr = `file/${name}`;
+    const thumbAddr = `thumbnail/${thumbName}`;
 
     const result = await mongoClient.updateImages({
-      ...videoData,
-      addr,
-      thumbnailUrl,
+      ...data,
+      thumbAddr,
+      thumb: data.thumbnail,
+      fileAddr,
     });
+
     if (result.matchedCount) {
       socket.emit('_exist_in_dataBase', { result });
       return;
     }
-    writeImageFile(videoData.file, addr);
-    writeImageFile(videoData.thumbnail, thumbnailUrl);
+    AWS_S3.uploadObject(data.file, fileAddr);
+    // AWS_S3.uploadObject(data.thumbnail, thumbAddr);
+    // return result;
   };
 
-  const handleImageAddition = async (imageData) => {
-    console.log(imageData);
-    const { name, thumbName } = imageData;
-
-    const addr = `${imgFolder}${name}`;
-    const thumbnailUrl = `${thumbFolder}${thumbName}`;
-
-    console.log(imageData);
-    // return;
-    const result = await mongoClient.updateImages({
-      ...imageData,
-      thumbnailUrl,
-      addr,
-    });
-    if (result.matchedCount) {
-      socket.emit('_exist_in_dataBase', { result });
-      return;
-    }
-    writeImageFile(imageData.file, addr);
-    writeImageFile(imageData.thumbnail, thumbnailUrl);
+  const handleUpload = (data) => {
+    const { name, thumbName } = data;
+    pushToDataBase(name, thumbName, data);
   };
+
+  socket.on('get_file', async ({ Key }) => {
+    // console.log(Key);
+
+    const getData = async () => {
+      const res = await AWS_S3.readObject(Key, socket);
+      // console.log(res);
+    };
+
+    getData();
+  });
 
   const handleImageDeletion = async (imagename) => {
     const res = await mongoClient.deleteImage(imagename);

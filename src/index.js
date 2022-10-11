@@ -9,7 +9,11 @@ dotenv.config();
 import { onConnection } from './js/socket.js';
 import { MongoClientConnection } from './js/mongo.js';
 
+import { AwsInstance } from './js/aws-integration.js';
+
 const mongoClient = new MongoClientConnection();
+const AWS_S3 = new AwsInstance();
+
 const app = Express();
 app.use(cors());
 // adding /static as the prefix for the image url
@@ -36,13 +40,20 @@ app.get('/', (req, res) => {
   res.send('hello three');
 });
 
+const img = 'static/images/t.png';
+
+app.get('/testAws', (req, res) => {
+  res.send('deleting');
+  AWS_S3.deleteObject('file/video.mp4');
+});
+
 app.get('/images', async (req, res) => {
   const imgData = await mongoClient.getAllImages();
   res.send(imgData);
 });
 
 io.on('connection', (socket) => {
-  onConnection(socket, mongoClient);
+  onConnection(socket, mongoClient, AWS_S3);
 });
 
 server.listen(PORT, () => {
