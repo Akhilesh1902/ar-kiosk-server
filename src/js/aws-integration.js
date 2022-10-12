@@ -34,22 +34,31 @@ export class AwsInstance {
     // console.log(this.uploadParams);
   }
 
-  readObject(Key, socket) {
+  async readObject(Key, socket) {
     const data = this.s3.getObject({ Bucket, Key }, (err, data) => {
+      console.log({ Bucket, Key });
       if (err) {
-        console.log('error while getting data from the server');
-        console.log(err);
+        console.error('error while getting data from the server');
+        // console.log(err);
       }
       if (data) {
         console.log('data successfully fetched');
-        socket.emit('get_file', { Data: data.Body });
+        socket?.emit('get_file', { Data: data.Body });
         return data.Body;
       }
     });
     // console.log(data);
     return data;
   }
-
+  async getFile(Key) {
+    console.log({ Bucket, Key });
+    return new Promise((resolve, reject) => {
+      this.s3.getObject({ Bucket, Key }, (err, data) => {
+        if (data) resolve({ modelName: Key, model: data.Body });
+        else reject();
+      });
+    });
+  }
   deleteObject(Key) {
     console.log(Key);
     this.s3.deleteObject({ Bucket, Key }, (err, data) => {

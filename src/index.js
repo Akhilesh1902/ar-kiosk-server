@@ -47,6 +47,27 @@ app.get('/testAws', (req, res) => {
   AWS_S3.deleteObject('file/video.mp4');
 });
 
+app.get('/model/:modelName', async (req, res) => {
+  console.log(req.params.modelName);
+  const { modelName } = req.params;
+  // return;
+  // const data = await AWS_S3.readObject(`models/${modelName}`);
+  console.log({ modelName });
+  const data = await AWS_S3.getFile(`models/${modelName}`);
+  console.log({ data });
+  res.send(data);
+});
+
+app.get('/file/:image', async (req, res) => {
+  // const {image} = req.params
+  console.log(req.params.image);
+  // return;
+  const data = await AWS_S3.getFile(`file/${req.params.image}`);
+
+  console.log(data);
+  res.send(data);
+});
+
 app.get('/images', async (req, res) => {
   const imgData = await mongoClient.getAllImages();
   res.send(imgData);

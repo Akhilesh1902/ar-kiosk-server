@@ -44,7 +44,40 @@ export class MongoClientConnection {
 
     return res;
   }
-
+  async updateData(data) {
+    const {
+      name,
+      thumbName,
+      thumb,
+      fileAddr,
+      Subject,
+      Class,
+      materialAddr,
+      scale,
+      Topic,
+      DisplayName,
+      type,
+    } = data;
+    const res = await this.collection.updateOne(
+      { name },
+      {
+        $set: {
+          thumbName,
+          DisplayName,
+          thumb,
+          fileAddr,
+          Subject,
+          Class,
+          Topic,
+          materialAddr,
+          scale,
+          type,
+        },
+      },
+      { upsert: true }
+    );
+    // console.log(res);
+  }
   async deleteImage(name) {
     const res = await this.collection.deleteOne({ name });
     return res;

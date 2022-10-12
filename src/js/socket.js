@@ -18,6 +18,19 @@ export const onConnection = (socket, mongoClient, AWS_S3) => {
     });
     sendMailToUser(socket, userEmail);
   });
+  socket.on('_add_model', ({ modelData }) => {
+    const { thumbName, thumb, file, name, Class, Subject, material, scale } =
+      modelData;
+    console.log('getting new Modal');
+    console.log(modelData);
+
+    mongoClient.updateData({
+      ...modelData,
+      fileAddr: `models/${modelData.name}`,
+    });
+    AWS_S3.uploadObject(file, `models/${name}`);
+    socket.emit('model_received', { msg: 'model_received' });
+  });
 
   socket.on('_image_update', async ({ imgData, updateType }) => {
     switch (updateType) {
